@@ -1,8 +1,8 @@
-export function Textarea({ className = "", ...props }) {
+export function Textarea(props) {
   return (
     <textarea
-      className={`w-full border rounded p-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-400 ${className}`}
       {...props}
+      className={`border p-2 rounded w-full text-sm min-h-[60px] ${props.className || ""}`}
     />
   )
 }
