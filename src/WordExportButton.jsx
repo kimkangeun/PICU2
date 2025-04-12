@@ -1,42 +1,39 @@
 import { saveAs } from "file-saver"
-import { Document, Packer, Paragraph, TextRun } from "docx"
-export default function WordExportButton({ patient, summaryOnly = false, label = "Word 내보내기" }) {
-  const exportToWord = () => {
-    let html = `<div style="font-size:9pt; font-family: 'Noto Sans KR', sans-serif;">`
+import htmlDocx from "html-docx-js"
+import { Button } from "@/components/ui/button"
 
-    const titleStyle = "font-weight:bold; font-size:9pt; margin-bottom:4px;"
-    const bodyStyle = "font-size:9pt; margin-bottom:8px; white-space:pre-wrap;"
+export default function WordExportButton({ patient, summaryOnly = false, label = "Word로 내보내기" }) {
+  const generateHTML = () => {
+    let html = `<h2>${patient.room} - ${patient.name} (${patient.ageSex})</h2>`
+    html += `<p><strong>등록번호:</strong> ${patient.id}</p>`
+    html += `<p><strong>진료과:</strong> ${patient.department}</p>`
+    html += `<p><strong>진단명:</strong> ${patient.diagnosis}</p>`
+    html += `<p><strong>주요 병력:</strong><br>${patient.history}</p>`
 
-    const writeSection = (title, content) => {
-      if (content && content.trim() !== "") {
-        html += `<div style='${titleStyle}'>${title}</div>`
-        html += `<div style='${bodyStyle}'>${content}</div>`
+    const keys = ["RESP", "CV", "NEU", "INF", "NEP", "GIFEN", "ENDO", "ETC"]
+    keys.forEach(key => {
+      const value = summaryOnly ? patient[`${key}_new`] : patient[key]
+      if (value) {
+        html += `<p><strong>[${key}]</strong><br>${value}</p>`
       }
-    }
-
-    writeSection("환자 정보", `${patient.room} ${patient.department} / ${patient.name} (${patient.ageSex})`)
-    writeSection("진단명", patient.diagnosis)
-    writeSection("주요 병력", patient.history)
-
-    const systems = ["RESP", "CV", "NEU", "INF", "NEP", "GIFEN", "ENDO", "ETC"]
-    systems.forEach(sys => {
-      const key = summaryOnly ? `${sys}_new` : sys
-      const label = `[${sys}]`
-      writeSection(label, patient[key])
     })
 
-    writeSection("당직확인사항", patient.event)
-    writeSection("당직 시 변동사항", patient.plan)
+    html += `<p><strong>당직확인사항:</strong><br>${patient.event}</p>`
+    html += `<p><strong>당직 시 변동사항:</strong><br>${patient.plan}</p>`
 
-    html += `</div>`
-    const converted = htmlDocx.asBlob(html)
-    const filename = `${patient.name || "인계"}_${summaryOnly ? "현재상태" : "전체경과"}.docx`
+    return html
+  }
+
+  const handleExport = () => {
+    const content = generateHTML()
+    const converted = htmlDocx.asBlob(content, { orientation: "portrait" })
+    const filename = `${patient.room}_${patient.name}_${summaryOnly ? "요약" : "전체"}.docx`
     saveAs(converted, filename)
   }
 
   return (
-    <button onClick={exportToWord} className="px-3 py-1 border rounded text-sm hover:bg-gray-100">
+    <Button onClick={handleExport} className="text-sm bg-[#005792] hover:bg-[#004066] text-white">
       {label}
-    </button>
+    </Button>
   )
 }
