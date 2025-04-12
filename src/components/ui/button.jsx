@@ -1,8 +1,8 @@
 export function Button({ children, className = "", ...props }) {
   return (
     <button
-      className={`px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 ${className}`}
       {...props}
+      className={`px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm ${className}`}
     >
       {children}
     </button>
