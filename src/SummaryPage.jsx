@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import WordExportAllButton from "./WordExportAllButton"
+import { saveAs } from "file-saver"
 import { useNavigate } from "react-router-dom"
 
 export default function SummaryPage() {
@@ -67,6 +67,31 @@ export default function SummaryPage() {
     localStorage.setItem("patients", JSON.stringify(updated))
   }
 
+  const exportToDoc = (summaryOnly = true) => {
+    const selectedPatients = patients.filter(p => selectedIds.includes(p.id))
+    const html = selectedPatients.map(p => `
+      <h2>${p.room} - ${p.name} - ${p.department} - ${p.ageSex} - ${p.id}</h2>
+      ${summaryOnly ? "" : `
+        <p><b>진단명:</b> ${p.diagnosis}</p>
+        <p><b>주요 병력:</b> ${p.history}</p>
+        <p><b>[RESP]</b><br>${p.RESP_new}</p>
+        <p><b>[CV]</b><br>${p.CV_new}</p>
+        <p><b>[NEU]</b><br>${p.NEU_new}</p>
+        <p><b>[INF]</b><br>${p.INF_new}</p>
+        <p><b>[NEP]</b><br>${p.NEP_new}</p>
+        <p><b>[GIFEN]</b><br>${p.GIFEN_new}</p>
+        <p><b>[ENDO]</b><br>${p.ENDO_new}</p>
+        <p><b>[ETC]</b><br>${p.ETC_new}</p>
+      `}
+      <p><b>당직확인사항:</b><br>${p.event}</p>
+      <p><b>당직 시 변동사항:</b><br>${p.plan}</p>
+      <br style="page-break-after: always;" />
+    `).join("\n")
+
+    const blob = new Blob([`<html><body>${html}</body></html>`], { type: "application/msword" })
+    saveAs(blob, summaryOnly ? "현재상태_일괄.doc" : "전체경과_일괄.doc")
+  }
+
   return (
     <div className="h-screen flex flex-col">
       <header className="bg-[#E6F4EF] p-4 text-center text-lg font-bold border-b text-[#005792]">
@@ -83,8 +108,8 @@ export default function SummaryPage() {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold text-[#005792]">📄 당직확인 요약</h2>
             <div className="space-x-2">
-              <WordExportAllButton ids={selectedIds} summaryOnly label="현재 상태 일괄 내보내기" />
-              <WordExportAllButton ids={selectedIds} summaryOnly={false} label="전체 경과 일괄 내보내기" />
+              <Button onClick={() => exportToDoc(true)} className="bg-blue-600 text-white">현재 상태 일괄 내보내기</Button>
+              <Button onClick={() => exportToDoc(false)} className="bg-gray-600 text-white">전체 경과 일괄 내보내기</Button>
               <Button onClick={() => navigate("/")} className="bg-[#00754B] hover:bg-[#005F3E] text-white">🏠 홈으로</Button>
             </div>
           </div>
